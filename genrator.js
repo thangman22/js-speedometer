@@ -11,7 +11,8 @@ const rp = require('request-promise')
 const crypto = require('crypto')
 const signale = require('signale')
 const qs = require('qs')
-const bodyParser = require('body-parser');
+const bodyParser = require('body-parser')
+const port = 3002;
 
 (async () => {
   app.use(compression())
@@ -21,7 +22,8 @@ const bodyParser = require('body-parser');
   app.engine('mustache', mustacheExpress())
   app.set('view engine', 'mustache')
   app.set('views', __dirname)
-  app.listen(3002)
+  app.listen(port)
+  signale.debug(`Listen app at port ${port}`)
 
   app.get('/build', async function (req, res) {
     signale.debug(`[BUILD] Retriving file from ${req.query.fileUrl}`)
