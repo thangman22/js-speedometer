@@ -4,6 +4,7 @@ const util = require('util')
 const express = require('express')
 const puppeteer = require('puppeteer')
 const app = express()
+const strip = require('strip-comments')
 const readFile = util.promisify(fs.readFile)
 const compression = require('compression')
 const mustacheExpress = require('mustache-express')
@@ -12,8 +13,8 @@ const crypto = require('crypto')
 const signale = require('signale')
 const qs = require('qs')
 const bodyParser = require('body-parser')
-const port = 3002;
-const testRound = 3
+const port = 3002
+const testRound = 3;
 
 (async () => {
   app.use(compression())
@@ -38,7 +39,7 @@ const testRound = 3
     }
 
     signale.debug(`[BUILD] Merging file with template for ${req.query.fileUrl}`)
-    let contentModified = template.toString().replace('[[script here]]', esc(mainScript))
+    let contentModified = template.toString().replace('[[script here]]', esc(strip(mainScript)))
     signale.debug(`[BUILD] Build ${req.query.fileUrl} Completed`)
     res.render('index', {
       modifiedJsScript: contentModified,
@@ -60,7 +61,6 @@ const testRound = 3
       performanceResult.url = req.body.fileUrl
 
       for (let i = 1; i <= testRound; i++) {
-        let currentRoundResult = {}
         let host = req.protocol + '://' + req.get('host')
 
         let browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] })
@@ -72,7 +72,6 @@ const testRound = 3
           if (messageLogs[1]) {
             let resultLog = JSON.parse(messageLogs[1])
             tests.push({ parse: resultLog.parse, exec: resultLog.exec})
-            currentRoundResult = { parse: resultLog.parse, exec: resultLog.exec }
           }
         })
 
@@ -87,12 +86,12 @@ const testRound = 3
         await page.waitFor(10000)
         signale.complete({ message: `[TEST] Test ${req.body.fileUrl} Completed` })
         await browser.close()
-        signale.success(`Result of ${req.body.fileUrl} is ${JSON.stringify(currentRoundResult)}`)
       }
 
       performanceResult.avgParse = parseFloat((tests.reduce((acc, val) => acc + val.parse, 0) / testRound).toFixed(2))
       performanceResult.avgExec = parseFloat((tests.reduce((acc, val) => acc + val.exec, 0) / testRound).toFixed(2))
       performanceResult.testResult = tests
+      signale.success(`Result of ${req.body.fileUrl} is ${JSON.stringify(performanceResult)}`)
       res.status(200).json(performanceResult)
     }
   })
