@@ -13,6 +13,7 @@ const signale = require('signale')
 const qs = require('qs')
 const bodyParser = require('body-parser')
 const port = 3002;
+const testRound = 3
 
 (async () => {
   app.use(compression())
@@ -47,40 +48,51 @@ const port = 3002;
 
   app.post('/test', async function (req, res) {
     if (!req.body.fileUrl) {
+    
       res.status(400).json({ 'error': 'fileUrl is empty' })
+    
     } else {
       let performanceResult = {}
+      let tests = []
       let mainScript = await rp(req.body.fileUrl)
       let hex = crypto.createHash('md5').update(mainScript).digest('hex')
       performanceResult.hash = hex
       performanceResult.url = req.body.fileUrl
-      let host = req.protocol + '://' + req.get('host')
 
-      let browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] })
-      let page = await browser.newPage()
-      let client = await page.target().createCDPSession()
-      await client.send('Emulation.setCPUThrottlingRate', { rate: 4 })
-      page.on('console', msg => {
-        let messageLogs = msg.text().split('||')
-        if (messageLogs[1]) {
-          let resultLog = JSON.parse(messageLogs[1])
-          performanceResult.parse = resultLog.parse
-          performanceResult.exec = resultLog.exec
-        }
-      })
+      for (let i = 1; i <= testRound; i++) {
+        let currentRoundResult = {}
+        let host = req.protocol + '://' + req.get('host')
 
-      let queryString = qs.stringify({
-        fileUrl: req.body.fileUrl,
-        dependencies: req.body.dependencies
-      })
+        let browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] })
+        let page = await browser.newPage()
+        let client = await page.target().createCDPSession()
+        await client.send('Emulation.setCPUThrottlingRate', { rate: 4 })
+        page.on('console', msg => {
+          let messageLogs = msg.text().split('||')
+          if (messageLogs[1]) {
+            let resultLog = JSON.parse(messageLogs[1])
+            tests.push({ parse: resultLog.parse, exec: resultLog.exec})
+            currentRoundResult = { parse: resultLog.parse, exec: resultLog.exec }
+          }
+        })
 
-      signale.debug(`[TEST] Opening ${host}/build?${queryString}`)
-      await page.goto(`${host}/build?${queryString}`)
-      signale.pending(`[TEST] Waiting for 10s`)
-      await page.waitFor(10000)
-      signale.complete({ message: `[TEST] Test ${req.body.fileUrl} Completed` })
-      await browser.close()
-      signale.success(`Result of ${req.body.fileUrl} is ${JSON.stringify(performanceResult)}`)
+        let queryString = qs.stringify({
+          fileUrl: req.body.fileUrl,
+          dependencies: req.body.dependencies
+        })
+
+        signale.debug(`[TEST] Opening ${host}/build?${queryString}`)
+        await page.goto(`${host}/build?${queryString}`)
+        signale.pending(`[TEST] Waiting for 10s`)
+        await page.waitFor(10000)
+        signale.complete({ message: `[TEST] Test ${req.body.fileUrl} Completed` })
+        await browser.close()
+        signale.success(`Result of ${req.body.fileUrl} is ${JSON.stringify(currentRoundResult)}`)
+      }
+
+      performanceResult.avgParse = parseFloat((tests.reduce((acc, val) => acc + val.parse, 0) / testRound).toFixed(2))
+      performanceResult.avgExec = parseFloat((tests.reduce((acc, val) => acc + val.exec, 0) / testRound).toFixed(2))
+      performanceResult.testResult = tests
       res.status(200).json(performanceResult)
     }
   })
