@@ -14,7 +14,7 @@ const signale = require('signale')
 const qs = require('qs')
 const bodyParser = require('body-parser')
 const port = 8080
-const testRound = 5;
+const testRound = 3;
 
 (async () => {
   app.use(compression())
