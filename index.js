@@ -24,12 +24,17 @@ const options = {
   disabled: false,
   interactive: false,
   stream: process.stdout,
-  scope: 'custom',
+  scope: 'browser',
   types: {
     error: {
       badge: '!!',
       color: 'red',
       label: 'Error'
+    },
+    log: {
+      badge: '??',
+      color: 'yellow',
+      label: 'Log'
     }
   }
 }
@@ -107,16 +112,15 @@ const getAsync = promisify(client.get).bind(client);
     
     } else {
       try {
+        let errorLog = []
         let performanceResult = {}
         let tests = []
-        let errorLog = []
         let mainScript = await rp(req.body.fileUrl)
         let size = Buffer.byteLength(mainScript, 'utf16')
-        performanceResult.size = size
-        
         let hex = crypto.createHash('md5').update(mainScript).digest('hex')
-        
         let cacheRes = await getAsync(hex)
+
+        performanceResult.size = size
 
         if (cacheRes) {
           let cachePerformanceRes = JSON.parse(cacheRes.toString())
@@ -124,15 +128,18 @@ const getAsync = promisify(client.get).bind(client);
           cachePerformanceRes.isCache = true
           signale.success(`[TEST] Cache hit for ${req.body.fileUrl}`)
           let status = 200
-          if (!cachePerformanceRes.avgParse) {
-            status = 400
+          
+          if (cachePerformanceRes.avgParse === 0) {
+            client.del(hex)
           }
+
           res.status(status).json(cachePerformanceRes)
         } else {
           performanceResult.hash = hex
           performanceResult.url = req.body.fileUrl
 
           for (let i = 1; i <= testRound; i++) {
+            errorLog = []
             let host = req.protocol + '://' + req.get('host')
 
             let browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] })
@@ -140,14 +147,22 @@ const getAsync = promisify(client.get).bind(client);
             let client = await page.target().createCDPSession()
             await client.send('Emulation.setCPUThrottlingRate', { rate: 4 })
             page.on('console', msg => {
+              custom.log(msg.text())
               let messageLogs = msg.text().split('||')
               if (messageLogs[1]) {
                 let resultLog = JSON.parse(messageLogs[1])
                 tests.push({ parse: resultLog.parse, exec: resultLog.exec })
-              } else {
-                custom.error(msg.text())
-                errorLog.push(req.body.fileUrl + ' | ' + msg.text())
               }
+            })
+
+            page.on('error', err => {
+              custom.error(err)
+              errorLog.push(err.toString())
+            })
+
+            page.on('pageerror', err => {
+              custom.error(err)
+              errorLog.push(err.toString())
             })
 
             let queryString = qs.stringify({
@@ -166,11 +181,12 @@ const getAsync = promisify(client.get).bind(client);
           performanceResult.avgParse = parseFloat((tests.reduce((acc, val) => acc + val.parse, 0) / testRound).toFixed(2))
           performanceResult.avgExec = parseFloat((tests.reduce((acc, val) => acc + val.exec, 0) / testRound).toFixed(2))
           performanceResult.testResult = tests
+          performanceResult.errorLog = errorLog
           performanceResult.testTime = Date.now()
 
           signale.success(`Result of ${req.body.fileUrl} is ${JSON.stringify(performanceResult)}`)
 
-          if (performanceResult.avgParse) {
+          if (performanceResult.avgParse > 0) {
             client.set(performanceResult.hash, JSON.stringify(performanceResult), 'EX', 3600);
           } 
 

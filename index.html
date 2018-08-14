@@ -26,7 +26,8 @@
                     progress: 0,
                     testingProgress: '',
                     mainScriptName: null,
-                    resultData: {}
+                    resultData: {},
+                    showErrorLog: false
                 },
                 filters: {
                     bytesToSize(bytes) {
@@ -70,6 +71,9 @@
                     },
                     toggleDependencies () {
                         this.showDependencies = !this.showDependencies
+                    },
+                    toggleError () {
+                        this.showErrorLog = !this.showErrorLog
                     }
                 }
             })
@@ -115,7 +119,7 @@
             <p class="remark">Some bundle require dependencies library. Please define before test.</p>
             <p class="test-button-container" v-if="mainScript"><button class="test-btn" @click="testBundle()"><i class="far fa-tachometer"></i> Test Bundle</button></p>
         </div>
-        <vue-simple-spinner size="large" :message="testingProgress" v-if="progress > 0 && progress < 100"></vue-simple-spinner>
+        <vue-simple-spinner style="margin-top: 70px;" size="large" :message="testingProgress" v-if="progress > 0 && progress < 100"></vue-simple-spinner>
         <div id="result" v-if="resultData.url && !resultData.avgParse">
             <p class="text-center"><i class="fal fa-exclamation-triangle big-font"></i></p>
             <h2 class="text-center">Some thing went wrong!, Maybe this script is not support testing or dependncies is missing, Please check</h2>
@@ -123,10 +127,16 @@
             <p class="test-button-container">
                 <a class="test-btn" href="/"><i class="far fa-sync-alt"></i> Test Another JS</a>
             </p>
+            <p v-if="resultData.errorLog.length > 0" class="error-link" @click="toggleError()">Show error</p>
+            <ul class="error-log" v-if="showErrorLog">
+                <li v-for="error in resultData.errorLog">
+                    {{error}}
+                </li>
+            </ul>
         </div>
         <div id="result" v-if="resultData.url && resultData.avgParse">
             <h2><i class="far fa-box"></i> {{mainScriptName}}</h2>
-            <h3><i class="far fa-link"></i> <a class="bundle-link" :href="resultData.url">{{resultData.url}}</a> | <strong>{{resultData.size | bytesToSize}}</strong></h3>
+            <h3><i class="far fa-link"></i> <a class="bundle-link" :href="resultData.url">{{resultData.url}}</a> | <strong style="color:#FF9100;">{{resultData.size | bytesToSize}}</strong></h3>
             <table>
                 <tr>
                     <td class="text-center" style="padding: 5px;"><strong>#</strong></td>
@@ -161,6 +171,20 @@
     </div>
     <div id="footer">Build with 🍊 By <a style="color:#FAFAFA;" href="https://www.thangman22.com">Thangman22</a></div>
     <style>
+
+        .error-log > li {
+            padding: 5px;
+            font-size: 10px;
+        }
+        .error-link{
+            font-size: 10px;
+            color: #F44336;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+        #result{
+            margin-top: 80px;
+        }
         #footer{
             text-align: center;
             position: fixed;
@@ -362,6 +386,7 @@
             border: 0;
             border-radius: 6px;
             color: #424242;
+            cursor: pointer;
         }
         .test-button-container{
             padding-top: 40px;
