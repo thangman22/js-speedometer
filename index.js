@@ -55,7 +55,7 @@ const client = redis.createClient(
 
 const limiter = new RateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100000,
+  max: 400,
   delayMs: 0,
   message: 'Too many accounts created from this IP, please try again after an 15 mins'
 })

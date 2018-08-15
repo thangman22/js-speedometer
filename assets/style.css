@@ -38,6 +38,9 @@
         margin-right: auto;
 
     }
+    .small{
+        font-size: 11px;
+    }
     .small-progress-item {
         overflow: hidden;
         height: 15px;

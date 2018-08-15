@@ -11,10 +11,13 @@
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script src="https://unpkg.com/vue-simple-spinner@1.2.8/dist/vue-simple-spinner.min.js"></script>
     <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro" rel="stylesheet">
-    <link href="/style.css" rel="stylesheet">
+    <link href="/assets/style.css" rel="stylesheet">
     <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-TXfwrfuHVznxCssTxWoPZjhcss/hp38gEOH8UPZG/JcXonvBQ6SlsIF49wUzsGno"
         crossorigin="anonymous">
-    
+    <meta property="og:title" content="JS Speedometer | How long your JS boot" />
+    <meta property="og:description" content="Test your JS / Public library boot time with JS Speedometer?" />
+    <meta property="og:image" content="https://js-speedometer.appspot.com/icon.png"
+    />
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const app = new Vue({
@@ -22,6 +25,7 @@
                 components: { 'autocomplete': window['vuejs-autocomplete'] },
                 data: {
                     showCustomUrl: false,
+                    afterTest: false,
                     showDependencies: false,
                     mainScript: null,
                     dependencies: {},
@@ -61,6 +65,7 @@
                         this.$delete(this.dependencies, key)
                     },
                     async testBundle (fromUrl) {
+                        this.afterTest = true
                         if(!this.mainScriptName) {
                             this.mainScriptName = 'None'
                         }
@@ -99,12 +104,12 @@
 </head>
 <body>
     <div id="main">
-        <div id="header" v-if="mainScriptName">
+        <div id="header" v-if="afterTest">
             <h4><i class="far fa-tachometer"></i> <i class="fab fa-js-square"></i> Speedometer </h4>
-            <h4 style="text-align:right; font-size:30px; margin-top:10px;"><i class="fab fa-github"></i></h4>
+            <h4 style="text-align:right; font-size:30px; margin-top:10px;"><a href="https://github.com/thangman22/js-speedometer" style="color:#FAFAFA;"><i class="fab fa-github"></i></a></h4>
         </div>
         <div id="app">
-            <h1 v-if="!mainScriptName"><i class="far fa-tachometer"></i> <i class="fab fa-js-square"></i> Speedometer</h1>
+            <h1 v-if="!afterTest"><i class="far fa-tachometer"></i> <i class="fab fa-js-square"></i> Speedometer</h1>
             <div v-if="progress === 0">
                 <p id="bundle-container" v-if="showCustomUrl === false">
                     <autocomplete placeholder="Search bundle from CDNJS" source="https://api.cdnjs.com/libraries?search=" results-property="results"
@@ -168,7 +173,7 @@
                                 <div class="exec progress-item small-progress-item" :style="{width: ((result.exec / (result.parse + result.exec)) * 100).toFixed(1) + '%'}">{{result.exec.toLocaleString()}} ms</div>
                             </div>
                         </td>
-                        <td class="text-center">{{(result.parse + result.exec).toLocaleString()}} ms</td>
+                        <td class="text-center small">{{(result.parse + result.exec).toLocaleString()}} ms</td>
                     </tr>
                     <tr>
                         <td class="text-center" style="padding-top: 30px;">Average</td>
@@ -179,7 +184,7 @@
                                 <div class="exec progress-item big-progress-item" :style="{width: ((resultData.avgExec / (resultData.avgParse + resultData.avgExec)) * 100).toFixed(0) + '%'}">{{resultData.avgExec.toLocaleString()}} ms</div>
                             </div>
                         </td>
-                        <td class="text-center" style="padding-top: 30px;">{{Math.round(resultData.avgParse + resultData.avgExec).toLocaleString()}}
+                        <td class="text-center small" style="padding-top: 30px;">{{Math.round(resultData.avgParse + resultData.avgExec).toLocaleString()}}
                             ms</td>
                     </tr>
                 </table>
@@ -189,14 +194,13 @@
                     <a class="test-btn" style="margin-right: 10px;" href="/">
                         <i class="far fa-sync-alt"></i> Test Another JS
                     </a>
-                    <a class="share-btn" href="/">
+                    <!-- <a class="share-btn" href="/">
                         <i class="far fa-share-alt"></i> Share
-                    </a>
+                    </a> -->
                 </p>
             </div>
         </div>
+        <div id="footer">Build with 🍊 By <a style="color:#FAFAFA;" href="https://www.thangman22.com">@Thangman22</a></div>
     </div>
-    
-    <div id="footer">Build with 🍊 By <a style="color:#FAFAFA;" href="https://www.thangman22.com">Thangman22</a></div>
 </body>
 </html>
