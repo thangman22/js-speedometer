@@ -1,0 +1,281 @@
+    .error-log > li {
+        padding: 5px;
+        font-size: 10px;
+    }
+    .error-link{
+        font-size: 10px;
+        color: #F44336;
+        text-decoration: underline;
+        cursor: pointer;
+    }
+    #result{
+        margin-top: 0px;
+    }
+    #footer{
+        text-align: center;
+        bottom: 0;
+        padding: 20px;
+        font-family: 'Source Sans Pro', sans-serif;
+        width: 100%;
+        font-size: 13px;
+    }
+    .text-center {
+        text-align: center;
+    }
+    .bundle-link{
+        color: #FAFAFA;
+    }
+    .big-font{
+        font-size: 90px;
+    }
+    .remark{
+        font-size: 13px;
+        text-align: center;
+    }
+    .progress{
+        display: flex;
+        margin-left: auto;
+        margin-right: auto;
+
+    }
+    .small-progress-item {
+        overflow: hidden;
+        height: 15px;
+        opacity: 0.75;
+        padding-top: 1px;
+        padding-bottom: 1px;
+        font-size: 12px;
+    }
+    .big-progress-item {
+        height: 30px;
+        padding-top: 7px;
+        font-size: 18px !important;
+    }
+    .progress-item{
+        display: inline-block;
+        font-weight: bold;
+        text-align: center;
+    }
+    .exec{
+        border-radius: 0 6px 6px 0;
+        background: #F50057;
+    }
+    .parse{
+        border-radius: 6px 0 0 6px;
+        background:#FF9100;
+    }
+    .progress {
+        width: 100%
+    }
+    table{
+        margin-top:40px;
+        width: 100%;
+    }
+    body{
+        background: #424242;
+        color: #FAFAFA;
+    }
+    input{
+        background: #424242 !important;
+    }
+    .vue-simple-spinner-text{
+        color: #FAFAFA !important;
+    }
+    .autocomplete__box{
+        background: #424242 !important;
+    }
+    #app {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        font-family: 'Source Sans Pro', sans-serif;
+        width: 60%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    .autocomplete__icon {
+        width: 20px;
+        height: 20px;
+    }
+    .autocomplete__inputs {
+        padding-left: 10px; 
+    }   
+    .autocomplete__box {
+        border: 0 !important;
+        border-radius: 0 !important;
+    }
+    .bundle-input > .autocomplete__box > .autocomplete__inputs > input {
+        font-size: 30px;
+        color: #FAFAFA;
+    }
+    .dependency-input > .autocomplete__box > .autocomplete__inputs > input {
+        font-size: 16px;
+        color: #FAFAFA;
+    }
+    .dependency-input > .autocomplete__box {
+        padding: 4px;
+        width: 70%;
+        margin-left: auto;
+        margin-right: auto;
+        border-bottom: 1px dotted #FAFAFA !important;
+    }
+    h1 {
+        margin-top: 80px;
+        font-size: 50px;
+        text-align: center;
+    }
+    .or {
+        text-align: center;
+    }
+    .link{
+        color: #F50057;
+        border-bottom: 1px dashed #F50057;
+        font-weight: 800;
+        cursor: pointer;
+    }
+    .delete-btn{
+        float: right;
+        background: #424242;
+        border: 0;
+        font-size: 14px;
+    }
+    .delete-btn > i {
+        font-size: 15px;
+        color: #FAFAFA;
+    }
+    .link2{
+        color: #FF9100;
+        border-bottom: 1px dashed #FF9100;
+        font-weight: 800;
+        cursor: pointer;
+    }
+    #bundle-url {
+        width: 60%;
+    }
+    #bundle-url{
+        width: 100%;
+        font-size: 30px;
+        border-top: 0;
+        border-left: 0;
+        border-right: 0;
+        color: #FAFAFA;
+        border-bottom: 1px solid #FAFAFA;
+    }
+    #bundle-url-container{
+        margin-top: 80px;
+        text-align: center;
+    }
+    #dependency-container{
+        margin-top: 30px;
+    }
+    #bundle-container{
+        margin-top: 150px;
+        border-bottom: 1px solid #FAFAFA;
+    }
+    #bundle-container > img {
+        height: 10px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    ::-webkit-input-placeholder {
+        text-align: center;
+        color: #BDBDBD;
+    }
+
+    :-moz-placeholder { /* Firefox 18- */
+        text-align: center;  
+        color: #BDBDBD;
+    }
+
+    ::-moz-placeholder {  /* Firefox 19+ */
+        text-align: center;  
+        color: #BDBDBD;
+    }
+
+    :-ms-input-placeholder {  
+        text-align: center; 
+        color: #BDBDBD;
+    }
+    li {
+        list-style: none;
+    }
+    .loading {
+        text-align: center;
+    }
+    .loading > img {
+        height: 10px;
+    }
+    .test-btn {
+        text-decoration: none;
+        padding: 10px;
+        font-size: 15px;
+        background: #FAFAFA;
+        border: 0;
+        border-radius: 6px;
+        color: #424242;
+        cursor: pointer;
+    }
+    .share-btn{
+        background-color:#4FC3F7;
+        text-decoration: none;
+        padding: 10px;
+        font-size: 15px;
+        border: 0;
+        border-radius: 6px;
+        color: #FAFAFA;
+        cursor: pointer;
+    }
+    .test-button-container{
+        padding-top: 40px;
+        text-align: center;
+    }
+    h2{
+        font-size: 40px;
+        margin-bottom: 0;
+    }
+    h3{
+        border-bottom: 1px dashed #FAFAFA;
+        padding-bottom: 8px;
+        font-weight: 400;
+        font-size: 13px;
+        margin-top: 5px;
+    }
+    #header{
+        font-family: 'Source Sans Pro', sans-serif;
+        width: 100%;
+        top: 0;
+        left: 0;
+        padding: 5px 10px 5px 15px;
+    }
+    #header > h4 {
+        width: 48%;
+        display: inline-block;
+        font-size: 20px;
+    }
+@media only screen and (max-width: 768px) {
+    #app {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        font-family: 'Source Sans Pro', sans-serif;
+        width: 95%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    h3 {
+        border-bottom: 1px dashed #FAFAFA;
+        padding-bottom: 8px;
+        font-weight: 400;
+        font-size: 13px;
+        margin-top: 5px;
+        overflow: hidden;
+    }
+    .big-progress-item {
+        height: 30px;
+        padding-top: 7px;
+        font-size: 12px !important;
+    }
+    h1 {
+        margin-top: 30px;
+        font-size: 50px;
+        text-align: center;
+    }
+}

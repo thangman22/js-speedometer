@@ -14,6 +14,7 @@ const rp = require('request-promise')
 const crypto = require('crypto')
 const signale = require('signale')
 const qs = require('qs')
+const path = require('path')
 const bodyParser = require('body-parser')
 const port = 8080
 const cors = require('cors')
@@ -54,7 +55,7 @@ const client = redis.createClient(
 
 const limiter = new RateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 50,
+  max: 100000,
   delayMs: 0,
   message: 'Too many accounts created from this IP, please try again after an 15 mins'
 })
@@ -76,6 +77,10 @@ const getAsync = promisify(client.get).bind(client);
   signale.debug(`Listen app at port ${port}`)
 
   app.get('/', async function (req, res) {
+    res.sendFile(path.join(__dirname + '/index.html'))
+  })
+
+  app.get('/js/:libName/:libUrl', async function (req, res) {
     res.sendFile(path.join(__dirname + '/index.html'))
   })
 
@@ -173,7 +178,7 @@ const getAsync = promisify(client.get).bind(client);
             signale.debug(`[TEST] Opening ${host}/build?${queryString}`)
             await page.goto(`${host}/build?${queryString}`)
             signale.pending(`[TEST] Waiting for 10s`)
-            await page.waitFor(10000)
+            await page.waitFor(9000)
             signale.complete({ message: `[TEST] Test ${req.body.fileUrl} Completed` })
             await browser.close()
           }

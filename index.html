@@ -5,18 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>JS Speedometer</title>
-    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vuejs-auto-complete@0.7.0/dist/build.min.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script src="https://unpkg.com/vue-simple-spinner@1.2.8/dist/vue-simple-spinner.min.js"></script>
     <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro" rel="stylesheet">
+    <link href="/style.css" rel="stylesheet">
     <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-TXfwrfuHVznxCssTxWoPZjhcss/hp38gEOH8UPZG/JcXonvBQ6SlsIF49wUzsGno"
         crossorigin="anonymous">
+    
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const app = new Vue({
-                el: '#app',
+                el: '#main',
                 components: { 'autocomplete': window['vuejs-autocomplete'] },
                 data: {
                     showCustomUrl: false,
@@ -37,6 +39,15 @@
                         return Math.round(bytes / Math.pow(1024, i), 2) + ' ' + sizes[i]
                     }
                 },
+                async mounted () {
+                    let pathParams = window.location.pathname.split('/')
+
+                    if (pathParams[1] === 'js') {
+                        this.mainScriptName = pathParams[2]
+                        this.mainScript = decodeURIComponent(pathParams[3])
+                        await this.testBundle(true)
+                    }
+                },
                 methods: {
                     setMainScript (item) {
                         this.mainScript = item.value
@@ -49,7 +60,13 @@
                     removeDependency (key) {
                         this.$delete(this.dependencies, key)
                     },
-                    async testBundle () {
+                    async testBundle (fromUrl) {
+                        if(!this.mainScriptName) {
+                            this.mainScriptName = 'None'
+                        }
+                        if (!fromUrl) {
+                            history.pushState({}, 'JS Speedometer', `/js/${this.mainScriptName}/${encodeURIComponent(this.mainScript)}`)
+                        }
                         this.progress = 0
                         let interval = setInterval(() => {
                             if (this.progress < 97) {
@@ -81,328 +98,105 @@
     </script>
 </head>
 <body>
-    <div id="app">
-        <h1><i class="far fa-tachometer"></i> <i class="fab fa-js-square"></i> Speedometer</h1>
-        <div v-if="progress === 0">
-            <p id="bundle-container" v-if="showCustomUrl === false">
-                <autocomplete 
-                    placeholder="Search bundle from CDNJS"
-                    source="https://api.cdnjs.com/libraries?search=" 
-                    results-property="results" 
-                    results-display="name" 
-                    results-value="latest"
-                    @selected="setMainScript"
-                    class="bundle-input">
-                </autocomplete>
-            </p>
-            <p class="or" v-if="showCustomUrl === false"><span class="link" @click="toggleCustom()">Or define your own URL</span> then <span class="link2" @click="toggleDependencies()">Add dependencies  (Optional)</span></p>
-            <p id="bundle-url-container" v-if="showCustomUrl"><input id="bundle-url" placeholder="Define bundle URL" v-model="mainScript" /></p>
-            <p class="or" v-if="showCustomUrl"><span class="link" @click="toggleCustom()">Or Search from CDNJS</span> then <span class="link2" @click="toggleDependencies()">Add dependencies (Optional)</span></p>
-            <p id="dependency-container" v-if="showDependencies">
-                <autocomplete 
-                    placeholder="Add dependencies from CDNJS (Optional)"
-                    source="https://api.cdnjs.com/libraries?search=" 
-                    results-property="results" 
-                    results-display="name" 
-                    results-value="latest"
-                    ref="dependencyAutocomplete"
-                    @selected="setDependencies"
-                    class="dependency-input">
-                </autocomplete>
-            </p>
-            <p><strong v-if="Object.values(dependencies).length > 0">Dependency files</strong></p>
-            <ul>
-                <li v-for="(dependency, key) in dependencies" :key="key">
-                    {{dependency}} <button @click="removeDependency(key)"class="delete-btn"><i class="fas fa-times"></i></button>
-                </li>
-            </ul>
-            <p class="remark">Some bundle require dependencies library. Please define before test.</p>
-            <p class="test-button-container" v-if="mainScript"><button class="test-btn" @click="testBundle()"><i class="far fa-tachometer"></i> Test Bundle</button></p>
+    <div id="main">
+        <div id="header" v-if="mainScriptName">
+            <h4><i class="far fa-tachometer"></i> <i class="fab fa-js-square"></i> Speedometer </h4>
+            <h4 style="text-align:right; font-size:30px; margin-top:10px;"><i class="fab fa-github"></i></h4>
         </div>
-        <vue-simple-spinner style="margin-top: 70px;" size="large" :message="testingProgress" v-if="progress > 0 && progress < 100"></vue-simple-spinner>
-        <div id="result" v-if="resultData.url && !resultData.avgParse">
-            <p class="text-center"><i class="fal fa-exclamation-triangle big-font"></i></p>
-            <h2 class="text-center">Some thing went wrong!, Maybe this script is not support testing or dependncies is missing, Please check</h2>
-            <h3 class="text-center" style="font-weight: 400; font-size: 15px;">Don't worry we will fix it soon</h3>
-            <p class="test-button-container">
-                <a class="test-btn" href="/"><i class="far fa-sync-alt"></i> Test Another JS</a>
-            </p>
-            <p v-if="resultData.errorLog.length > 0" class="error-link" @click="toggleError()">Show error</p>
-            <ul class="error-log" v-if="showErrorLog">
-                <li v-for="error in resultData.errorLog">
-                    {{error}}
-                </li>
-            </ul>
-        </div>
-        <div id="result" v-if="resultData.url && resultData.avgParse">
-            <h2><i class="far fa-box"></i> {{mainScriptName}}</h2>
-            <h3><i class="far fa-link"></i> <a class="bundle-link" :href="resultData.url">{{resultData.url}}</a> | <strong style="color:#FF9100;">{{resultData.size | bytesToSize}}</strong></h3>
-            <table>
-                <tr>
-                    <td class="text-center" style="padding: 5px;"><strong>#</strong></td>
-                    <td class="text-center" style="width:80%; padding: 5px;"><strong><span style="color: #FF9100;">Parsing time</span> / <span style="color: #F50057;">Execution time</span></strong></td>
-                    <td class="text-center" style="padding: 5px;"><strong><i class="far fa-clock"></i> Total</strong></td>
-                </tr>
-                <tr v-for="(result, key) in resultData.testResult">
-                    <td class="text-center">{{key + 1}}</td>
-                    <td>
-                    <div class="progress" style="padding-top: 5px;">
-                       <div class="parse progress-item small-progress-item" :style="{width: ((result.parse / (result.parse + result.exec)) * 100).toFixed(1) + '%'}">{{result.parse.toLocaleString()}} ms</div><div class="exec progress-item small-progress-item" :style="{width: ((result.exec / (result.parse + result.exec)) * 100).toFixed(1) + '%'}">{{result.exec.toLocaleString()}} ms</div>
-                    </div>
-                    </td>
-                    <td class="text-center">{{(result.parse + result.exec).toLocaleString()}} ms</td>
-                </tr>
-                <tr>
-                    <td class="text-center" style="padding-top: 30px;">Average</td>
-                    <td>
-                        <div class="progress" style="padding-top: 30px;">
-                            <div class="parse progress-item big-progress-item" :style="{width: ((resultData.avgParse / (resultData.avgParse + resultData.avgExec)) * 100).toFixed(0) + '%'}">{{resultData.avgParse.toLocaleString()}} ms</div><div class="exec progress-item big-progress-item" :style="{width: ((resultData.avgExec / (resultData.avgParse + resultData.avgExec)) * 100).toFixed(0) + '%'}">{{resultData.avgExec.toLocaleString()}} ms</div>
-                        </div>
-                    </td>
-                    <td class="text-center" style="padding-top: 30px;">{{Math.round(resultData.avgParse + resultData.avgExec).toLocaleString()}} ms</td>
-                </tr>
-            </table>
-            <p class="remark">All testing is running on 4x slower CPU. This is average phone speed. <span v-if="resultData.isCache">This result serve is from cache.</span></p>
-            <p class="test-button-container">
-                <a class="test-btn" href="/">
-                    <i class="far fa-sync-alt"></i> Test Another JS</a>
-            </p>
+        <div id="app">
+            <h1 v-if="!mainScriptName"><i class="far fa-tachometer"></i> <i class="fab fa-js-square"></i> Speedometer</h1>
+            <div v-if="progress === 0">
+                <p id="bundle-container" v-if="showCustomUrl === false">
+                    <autocomplete placeholder="Search bundle from CDNJS" source="https://api.cdnjs.com/libraries?search=" results-property="results"
+                        results-display="name" results-value="latest" @selected="setMainScript" class="bundle-input">
+                    </autocomplete>
+                </p>
+                <p class="or" v-if="showCustomUrl === false"><span class="link" @click="toggleCustom()">Or define your own URL</span>
+                    then <span class="link2" @click="toggleDependencies()">Add dependencies (Optional)</span></p>
+                <p id="bundle-url-container" v-if="showCustomUrl"><input id="bundle-url" placeholder="Define bundle URL" v-model="mainScript"
+                    /></p>
+                <p class="or" v-if="showCustomUrl"><span class="link" @click="toggleCustom()">Or Search from CDNJS</span> then <span
+                        class="link2" @click="toggleDependencies()">Add dependencies (Optional)</span></p>
+                <p id="dependency-container" v-if="showDependencies">
+                    <autocomplete placeholder="Add dependencies from CDNJS (Optional)" source="https://api.cdnjs.com/libraries?search=" results-property="results"
+                        results-display="name" results-value="latest" ref="dependencyAutocomplete" @selected="setDependencies" class="dependency-input">
+                    </autocomplete>
+                </p>
+                <p><strong v-if="Object.values(dependencies).length > 0">Dependency files</strong></p>
+                <ul>
+                    <li v-for="(dependency, key) in dependencies" :key="key">
+                        {{dependency}} <button @click="removeDependency(key)" class="delete-btn"><i class="fas fa-times"></i></button>
+                    </li>
+                </ul>
+                <p class="remark">Some bundle require dependencies library. Please define before test.</p>
+                <p class="test-button-container" v-if="mainScript"><button class="test-btn" @click="testBundle(false)"><i class="far fa-tachometer"></i>
+                        Test Bundle</button></p>
+            </div>
+            <vue-simple-spinner style="margin-top: 70px;" size="large" :message="testingProgress" v-if="progress > 0 && progress < 100"></vue-simple-spinner>
+            <div id="result" v-if="resultData.url && !resultData.avgParse">
+                <p class="text-center"><i class="fal fa-exclamation-triangle big-font"></i></p>
+                <h2 class="text-center">Some thing went wrong!, Maybe this script is not support testing or dependncies is missing,
+                    Please check</h2>
+                <h3 class="text-center" style="font-weight: 400; font-size: 15px;">Don't worry we will fix it soon</h3>
+                <p class="test-button-container">
+                    <a class="test-btn" href="/"><i class="far fa-sync-alt"></i> Test Another JS</a>
+                </p>
+                <p v-if="resultData.errorLog.length > 0" class="error-link" @click="toggleError()">Show error</p>
+                <ul class="error-log" v-if="showErrorLog">
+                    <li v-for="error in resultData.errorLog">
+                        {{error}}
+                    </li>
+                </ul>
+            </div>
+            <div id="result" v-if="resultData.url && resultData.avgParse">
+                <h2 v-if="mainScriptName"><i class="far fa-box"></i> {{mainScriptName}}</h2>
+                <h3><i class="far fa-link"></i> <a class="bundle-link" :href="resultData.url">{{resultData.url}}</a> | <strong style="color:#FF9100;">{{resultData.size
+                        | bytesToSize}}</strong></h3>
+                <table>
+                    <tr>
+                        <td class="text-center" style="padding: 5px;"><strong>#</strong></td>
+                        <td class="text-center" style="width:80%; padding: 5px;"><strong><span style="color: #FF9100;">Parsing time</span>
+                                / <span style="color: #F50057;">Execution time</span></strong></td>
+                        <td class="text-center" style="padding: 5px;"><strong><i class="far fa-clock"></i> Total</strong></td>
+                    </tr>
+                    <tr v-for="(result, key) in resultData.testResult">
+                        <td class="text-center">{{key + 1}}</td>
+                        <td>
+                            <div class="progress" style="padding-top: 5px;">
+                                <div class="parse progress-item small-progress-item" :style="{width: ((result.parse / (result.parse + result.exec)) * 100).toFixed(1) + '%'}">{{result.parse.toLocaleString()}}
+                                    ms</div>
+                                <div class="exec progress-item small-progress-item" :style="{width: ((result.exec / (result.parse + result.exec)) * 100).toFixed(1) + '%'}">{{result.exec.toLocaleString()}} ms</div>
+                            </div>
+                        </td>
+                        <td class="text-center">{{(result.parse + result.exec).toLocaleString()}} ms</td>
+                    </tr>
+                    <tr>
+                        <td class="text-center" style="padding-top: 30px;">Average</td>
+                        <td>
+                            <div class="progress" style="padding-top: 30px;">
+                                <div class="parse progress-item big-progress-item" :style="{width: ((resultData.avgParse / (resultData.avgParse + resultData.avgExec)) * 100).toFixed(0) + '%'}">{{resultData.avgParse.toLocaleString()}}
+                                    ms</div>
+                                <div class="exec progress-item big-progress-item" :style="{width: ((resultData.avgExec / (resultData.avgParse + resultData.avgExec)) * 100).toFixed(0) + '%'}">{{resultData.avgExec.toLocaleString()}} ms</div>
+                            </div>
+                        </td>
+                        <td class="text-center" style="padding-top: 30px;">{{Math.round(resultData.avgParse + resultData.avgExec).toLocaleString()}}
+                            ms</td>
+                    </tr>
+                </table>
+                <p class="remark">All testing is running on 4x slower CPU. This is average phone speed. <span v-if="resultData.isCache">This
+                        result serve is from cache.</span></p>
+                <p class="test-button-container">
+                    <a class="test-btn" style="margin-right: 10px;" href="/">
+                        <i class="far fa-sync-alt"></i> Test Another JS
+                    </a>
+                    <a class="share-btn" href="/">
+                        <i class="far fa-share-alt"></i> Share
+                    </a>
+                </p>
+            </div>
         </div>
     </div>
+    
     <div id="footer">Build with 🍊 By <a style="color:#FAFAFA;" href="https://www.thangman22.com">Thangman22</a></div>
-    <style>
-
-        .error-log > li {
-            padding: 5px;
-            font-size: 10px;
-        }
-        .error-link{
-            font-size: 10px;
-            color: #F44336;
-            text-decoration: underline;
-            cursor: pointer;
-        }
-        #result{
-            margin-top: 80px;
-        }
-        #footer{
-            text-align: center;
-            position: fixed;
-            bottom: 0;
-            padding: 20px;
-            font-family: 'Source Sans Pro', sans-serif;
-            width: 100%;
-            font-size: 13px;
-        }
-        .text-center {
-            text-align: center;
-        }
-        .bundle-link{
-            color: #FAFAFA;
-        }
-        .big-font{
-            font-size: 90px;
-        }
-        .remark{
-            font-size: 10px;
-            text-align: center;
-        }
-        .progress{
-            margin-left: auto;
-            margin-right: auto;
-
-        }
-        .small-progress-item {
-            overflow: hidden;
-            height: 15px;
-            opacity: 0.75;
-            padding-top: 1px;
-            padding-bottom: 1px;
-            font-size: 12px;
-        }
-        .big-progress-item {
-            height: 30px;
-            padding-top: 7px;
-            font-size: 18px !important;
-        }
-        .progress-item{
-            display: inline-block;
-            font-weight: bold;
-            text-align: center;
-        }
-        .exec{
-            border-radius: 0 6px 6px 0;
-            background: #F50057;
-        }
-        .parse{
-            border-radius: 6px 0 0 6px;
-            background:#FF9100;
-        }
-        .progress {
-            width: 100%
-        }
-        table{
-            margin-top:40px;
-            width: 100%;
-        }
-        body{
-            background: #424242;
-            color: #FAFAFA;
-        }
-        input{
-            background: #424242;
-        }
-        .vue-simple-spinner-text{
-            color: #FAFAFA !important;
-        }
-        .autocomplete__box{
-            background: #424242;
-        }
-        #app {
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            font-family: 'Source Sans Pro', sans-serif;
-            width: 50%;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        .autocomplete__icon {
-            width: 20px;
-            height: 20px;
-        }
-        .autocomplete__inputs {
-            padding-left: 10px; 
-        }   
-        .autocomplete__box {
-            border: 0;
-            border-radius: 0;
-        }
-        .bundle-input > .autocomplete__box > .autocomplete__inputs > input {
-            font-size: 30px;
-            color: #FAFAFA;
-        }
-        .dependency-input > .autocomplete__box > .autocomplete__inputs > input {
-            font-size: 16px;
-            color: #FAFAFA;
-        }
-        .dependency-input > .autocomplete__box {
-            padding: 4px;
-            width: 70%;
-            margin-left: auto;
-            margin-right: auto;
-            border-bottom: 1px dotted #FAFAFA;
-        }
-        h1 {
-            margin-top: 80px;
-            font-size: 50px;
-            text-align: center;
-        }
-        .or {
-            text-align: center;
-        }
-        .link{
-            color: #F50057;
-            border-bottom: 1px dashed #F50057;
-            font-weight: 800;
-            cursor: pointer;
-        }
-        .delete-btn{
-            float: right;
-            background: #424242;
-            border: 0;
-            font-size: 14px;
-        }
-        .delete-btn > i {
-            font-size: 15px;
-            color: #FAFAFA;
-        }
-        .link2{
-            color: #FF9100;
-            border-bottom: 1px dashed #FF9100;
-            font-weight: 800;
-            cursor: pointer;
-        }
-        #bundle-url {
-            width: 60%;
-        }
-        #bundle-url{
-            width: 100%;
-            font-size: 30px;
-            border-top: 0;
-            border-left: 0;
-            border-right: 0;
-            color: #FAFAFA;
-            border-bottom: 1px solid #FAFAFA;
-        }
-        #bundle-url-container{
-            margin-top: 80px;
-            text-align: center;
-        }
-        #dependency-container{
-            margin-top: 30px;
-        }
-        #bundle-container{
-            margin-top: 150px;
-            border-bottom: 1px solid #FAFAFA;
-        }
-        #bundle-container > img {
-            height: 10px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        ::-webkit-input-placeholder {
-            text-align: center;
-            color: #BDBDBD;
-        }
-
-        :-moz-placeholder { /* Firefox 18- */
-            text-align: center;  
-            color: #BDBDBD;
-        }
-
-        ::-moz-placeholder {  /* Firefox 19+ */
-            text-align: center;  
-            color: #BDBDBD;
-        }
-
-        :-ms-input-placeholder {  
-            text-align: center; 
-            color: #BDBDBD;
-        }
-        li {
-            list-style: none;
-        }
-        .loading {
-            text-align: center;
-        }
-        .loading > img {
-            height: 10px;
-        }
-        .test-btn {
-            text-decoration: none;
-            padding: 10px;
-            font-size: 15px;
-            background: #FAFAFA;
-            border: 0;
-            border-radius: 6px;
-            color: #424242;
-            cursor: pointer;
-        }
-        .test-button-container{
-            padding-top: 40px;
-            text-align: center;
-        }
-        h2{
-            font-size: 40px;
-            margin-bottom: 0;
-        }
-        h3{
-            border-bottom: 1px dashed #FAFAFA;
-            padding-bottom: 8px;
-            font-weight: 400;
-            font-size: 13px;
-            margin-top: 5px;
-        }
-    </style>
 </body>
 </html>
