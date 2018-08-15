@@ -1,4 +1,9 @@
 {
+  "name": "js-speedometer",
+  "description": "Repository of js-speedometer.appspot.com",
+  "version": "0.1.0",
+  "author": "Warat Wongmaneekit <canopybanj@gmail.com>",
+  "license": "MIT",
   "scripts": {
     "start": "node index.js",
     "deploy": "gcloud app deploy"
