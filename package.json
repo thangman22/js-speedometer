@@ -6,7 +6,9 @@
   "license": "MIT",
   "scripts": {
     "start": "env-cmd ./.env node index.js",
-    "deploy": "gcloud app deploy"
+    "deploy": "gcloud app deploy",
+    "lint": "eslint index.js",
+    "lint-fix": "eslint --fix index.js"
   },
   "dependencies": {
     "body-parser": "^1.18.3",
@@ -16,6 +18,8 @@
     "env-cmd": "^8.0.2",
     "express": "^4.16.3",
     "express-rate-limit": "^2.12.2",
+    "firebase": "^5.4.0",
+    "firebase-admin": "^6.0.0",
     "js-string-escape": "^1.0.1",
     "mustache-express": "^1.2.7",
     "nconf": "^0.10.0",
@@ -30,7 +34,7 @@
   "devDependencies": {
     "eslint": "^5.3.0",
     "eslint-config-standard": "^11.0.0",
-    "eslint-plugin-import": "^2.13.0",
+    "eslint-plugin-import": "^2.14.0",
     "eslint-plugin-node": "^7.0.1",
     "eslint-plugin-promise": "^3.8.0",
     "eslint-plugin-standard": "^3.1.0"

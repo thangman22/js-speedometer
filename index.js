@@ -2,7 +2,6 @@ const fs = require('fs')
 const esc = require('js-string-escape')
 const util = require('util')
 const redis = require('redis')
-const nconf = require('nconf')
 const express = require('express')
 const puppeteer = require('puppeteer')
 const app = express()
@@ -20,8 +19,16 @@ const port = process.env.PORT || 8080
 const cors = require('cors')
 const RateLimit = require('express-rate-limit')
 const { promisify } = require('util')
-const testRound = 3
+const admin = require('firebase-admin')
+const serviceAccount = require('./serviceAccountKey.json')
 
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: 'https://js-speedometer.firebaseio.com'
+})
+
+const database = admin.database()
+const testRound = 3
 const options = {
   disabled: false,
   interactive: false,
@@ -41,7 +48,7 @@ const options = {
   }
 }
 
-const custom = new signale.Signale(options);
+const custom = new signale.Signale(options)
 
 const limiter = new RateLimit({
   windowMs: 15 * 60 * 1000,
@@ -50,7 +57,7 @@ const limiter = new RateLimit({
   message: 'Too many accounts created from this IP, please try again after an 15 mins'
 })
 
-function redisSync(redisClient) {
+function redisSync (redisClient) {
   return {
     getAsync: promisify(redisClient.get).bind(redisClient),
     keysAsync: promisify(redisClient.keys).bind(redisClient)
@@ -58,7 +65,6 @@ function redisSync(redisClient) {
 }
 
 function connectRedis () {
-
   return redis.createClient(
     process.env.REDIS_PORT || '6379',
     process.env.REDIS_URL || '127.0.0.1',
@@ -83,11 +89,11 @@ function connectRedis () {
   signale.debug(`Listen app at port ${port}`)
 
   app.get('/', async function (req, res) {
-    res.sendFile(path.join(__dirname + '/index.html'))
+    res.sendFile(path.join(__dirname, '/index.html'))
   })
 
   app.get('/js/:libName/:libUrl', async function (req, res) {
-    res.sendFile(path.join(__dirname + '/index.html'))
+    res.sendFile(path.join(__dirname, '/index.html'))
   })
 
   app.get('/clearCache', async function (req, res) {
@@ -103,7 +109,7 @@ function connectRedis () {
   app.get('/listCurrentCache', async function (req, res) {
     let apiRes = []
     let keys = await redisSync(connectRedis()).keysAsync('*')
-    for(let key of keys ) {
+    for (let key of keys) {
       let redisCache = await redisSync(connectRedis()).getAsync(key)
       apiRes.push(JSON.parse(redisCache))
     }
@@ -132,15 +138,11 @@ function connectRedis () {
     } catch (error) {
       res.status(500).json({ 'error': 'build fail' })
     }
-    
   })
 
   app.post('/test', async function (req, res) {
-    
     if (!req.body.fileUrl) {
-    
       res.status(400).json({ 'error': 'fileUrl is empty' })
-    
     } else {
       try {
         let errorLog = []
@@ -159,7 +161,7 @@ function connectRedis () {
           cachePerformanceRes.isCache = true
           signale.success(`[TEST] Cache hit for ${req.body.fileUrl}`)
           let status = 200
-          
+
           if (cachePerformanceRes.avgParse === 0) {
             connectRedis().del(hex)
           }
@@ -186,7 +188,7 @@ function connectRedis () {
 
               if (msg.text().indexOf('||') === -1) {
                 errorLog.push(msg.text())
-              } 
+              }
             })
 
             page.on('error', err => {
@@ -221,17 +223,17 @@ function connectRedis () {
           signale.success(`Result of ${req.body.fileUrl} is ${JSON.stringify(performanceResult)}`)
 
           if (performanceResult.avgParse > 0) {
-            connectRedis().set(performanceResult.hash, JSON.stringify(performanceResult), 'EX', 3600);
-          } 
+            connectRedis().set(performanceResult.hash, JSON.stringify(performanceResult), 'EX', 3600)
+          }
+
+          database.ref('js/' + hex).set(performanceResult)
 
           res.status(200).json(performanceResult)
         }
       } catch (error) {
         console.log(error)
-        res.status(500).json({ 'error': 'test fail','msg': error })
+        res.status(500).json({ 'error': 'test fail', 'msg': error })
       }
-
-
     }
   })
 })()
