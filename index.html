@@ -12,6 +12,7 @@
     <script src="https://unpkg.com/vue-simple-spinner@1.2.8/dist/vue-simple-spinner.min.js"></script>
     <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro" rel="stylesheet">
     <link href="/assets/style.css" rel="stylesheet">
+    <script src="/assets/main.js"></script>
     <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-TXfwrfuHVznxCssTxWoPZjhcss/hp38gEOH8UPZG/JcXonvBQ6SlsIF49wUzsGno"
         crossorigin="anonymous">
     <meta property="og:title" content="JS Speedometer | How long your JS boot?" />
@@ -21,102 +22,6 @@
     <meta name="theme-color" content="#424242">
     <link rel="icon" sizes="192x192" href="/icon-fav.png">
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const app = new Vue({
-                el: '#main',
-                components: { 'autocomplete': window['vuejs-autocomplete'] },
-                data: {
-                    showCustomUrl: false,
-                    afterTest: false,
-                    showDependencies: false,
-                    mainScript: null,
-                    dependencies: {},
-                    progress: 0,
-                    testingProgress: '',
-                    mainScriptName: null,
-                    resultData: {},
-                    showErrorLog: false,
-                    enableShare: false
-                },
-                filters: {
-                    bytesToSize(bytes) {
-                        let sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB']
-                        if (bytes == 0) return '0 Byte'
-                        let i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)))
-                        return Math.round(bytes / Math.pow(1024, i), 2) + ' ' + sizes[i]
-                    }
-                },
-                async mounted () {
-                    
-                    if (navigator.share) {
-                        this.enableShare = true;
-                    }
-
-                    let pathParams = window.location.pathname.split('/')
-
-                    if (pathParams[1] === 'js') {
-                        this.mainScriptName = pathParams[2]
-                        this.mainScript = decodeURIComponent(pathParams[3])
-                        await this.testBundle(true)
-                    }
-                },
-                methods: {
-                    share () {
-                          navigator.share({
-                            title: 'JS Speedometer | How long your JS boot?',
-                            text: `Test result of ${this.mainScriptName} Pasing time ${Math.round(this.resultData.avgParse)}ms / Execution time ${Math.round(this.resultData.avgExec)}ms`,
-                            url: window.location.href,
-                        })
-                    },
-                    setMainScript (item) {
-                        this.mainScript = item.value
-                        this.mainScriptName = item.display
-                    },
-                    setDependencies (item) {
-                        this.$refs.dependencyAutocomplete.clear()
-                        this.$set(this.dependencies, item.display, item.value)
-                    },
-                    removeDependency (key) {
-                        this.$delete(this.dependencies, key)
-                    },
-                    async testBundle (fromUrl) {
-                        this.afterTest = true
-                        if(!this.mainScriptName) {
-                            this.mainScriptName = 'None'
-                        }
-                        if (!fromUrl) {
-                            history.pushState({}, 'JS Speedometer', `/js/${this.mainScriptName}/${encodeURIComponent(this.mainScript)}`)
-                        }
-                        this.progress = 0
-                        let interval = setInterval(() => {
-                            if (this.progress < 97) {
-                                this.progress = this.progress + 1.66
-                            }
-                            this.testingProgress = 'Testing progress ' + Math.round(this.progress) + '%' 
-                        }, 1000)
-                        testResult = await axios.post('/test/',{
-                            "fileUrl": this.mainScript,
-                            "dependencies": Object.values(this.dependencies)
-                        })
-                        this.resultData = testResult.data
-                        clearInterval(interval)
-                        this.progress = 100
-                        this.testingProgress = 'Testing progress ' + Math.round(this.progress) + '%'
-                    },
-                    toggleCustom () {
-                        this.showCustomUrl = !this.showCustomUrl
-                    },
-                    toggleDependencies () {
-                        this.showDependencies = !this.showDependencies
-                    },
-                    toggleError () {
-                        this.showErrorLog = !this.showErrorLog
-                    }
-                }
-            })
-        })
-    </script>
 </head>
 <body>
     <div id="main">
@@ -126,6 +31,7 @@
         </div>
         <div id="app">
             <h1 v-if="!afterTest"><i class="far fa-tachometer"></i> <i class="fab fa-js-square"></i> Speedometer</h1>
+            <h5 v-if="!afterTest"> Tool for benchmark parsing and execution time of JS script</h5>
             <div v-if="progress === 0">
                 <p id="bundle-container" v-if="showCustomUrl === false">
                     <autocomplete placeholder="Search from CDNJS" source="https://api.cdnjs.com/libraries?search=" results-property="results"
@@ -156,6 +62,9 @@
                         Test Bundle</button></p>
             </div>
             <vue-simple-spinner style="margin-top: 70px;" size="large" :message="testingProgress" v-if="progress > 0 && progress < 100"></vue-simple-spinner>
+            <p class="text-center remark" v-if="progress > 0 && progress < 100 ">
+                JS speedometer will test this script 3 times. It take around 1 mins. Please don't leave me T_T 
+            </p>
             <div id="result" v-if="resultData.url && !resultData.avgParse">
                 <p class="text-center"><i class="fal fa-exclamation-triangle big-font"></i></p>
                 <h2 class="text-center">Some thing went wrong!, Maybe this script is not support testing or dependncies is missing,
