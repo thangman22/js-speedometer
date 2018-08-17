@@ -1,11 +1,18 @@
+This is a repository of [JSspeedometer](https://js-speedometer.appspot.com/)
+
 # Bundle Speedometer
-Tool for benchmark parsing and execution time of JS script. Inspring by [Bundlephobia](https://github.com/pastelsky/bundlephobia) and [DeviceTiming](https://github.com/danielmendel/DeviceTiming)
+Tool for benchmark parsing and execution time of JS script. Inspring by [Bundlephobia](https://github.com/pastelsky/bundlephobia) and [DeviceTiming](https://github.com/danielmendel/DeviceTiming).
 
 ## Feature
 - Calculate parsing / execution time of JS
 - Slect bundle from CDNJS or use custom url
 - Calculate by eval script in real browser ( Puppeteer )
 
+## Support
+If you like JSspeedometer and it help you to make a good product. Just buy me a coffee
+
+
+[Buy me a coffee](https://www.buymeacoffee.com/assets/img/custom_images/white_img.png "Buy me a coffee")
 ## FAQ
 
 #### How it work?
