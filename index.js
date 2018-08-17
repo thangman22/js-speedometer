@@ -58,13 +58,12 @@ function redisSync(redisClient) {
 }
 
 function connectRedis () {
-  nconf.argv().env().file('conf.json')
 
   return redis.createClient(
-    nconf.get('REDIS_PORT') || '6379',
-    nconf.get('REDIS_URL') || '127.0.0.1',
+    process.env.REDIS_PORT || '6379',
+    process.env.REDIS_URL || '127.0.0.1',
     {
-      'auth_pass': nconf.get('REDIS_PASSWORD') || '',
+      'auth_pass': process.env.REDIS_PASSWORD || '',
       'return_buffers': false
     }
   ).on('error', (err) => console.error('ERR:REDIS:', err))

@@ -6,6 +6,7 @@
   "license": "MIT",
   "scripts": {
     "start": "node index.js",
+    "dev": "env-cmd ./.env node index.js",
     "deploy": "gcloud app deploy"
   },
   "dependencies": {
@@ -13,6 +14,7 @@
     "compression": "^1.7.3",
     "cors": "^2.8.4",
     "crypto": "^1.0.1",
+    "env-cmd": "^8.0.2",
     "express": "^4.16.3",
     "express-rate-limit": "^2.12.2",
     "js-string-escape": "^1.0.1",
