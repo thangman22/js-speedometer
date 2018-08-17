@@ -19,6 +19,7 @@ const bodyParser = require('body-parser')
 const port = 8080
 const cors = require('cors')
 const RateLimit = require('express-rate-limit')
+const { promisify } = require('util')
 const testRound = 3
 
 const options = {
@@ -43,7 +44,6 @@ const options = {
 const custom = new signale.Signale(options);
 
 nconf.argv().env().file('conf.json')
-
 const redisClient = redis.createClient(
   nconf.get('REDIS_PORT') || '6379',
   nconf.get('REDIS_URL') || '127.0.0.1',
@@ -51,7 +51,7 @@ const redisClient = redis.createClient(
     'auth_pass': nconf.get('REDIS_PASSWORD') || '',
     'return_buffers': false,
     retry_strategy: function (options) {
-      if (options.attempt > 10) {
+      if (options.attempt > 100) {
         // End reconnecting with built in error
         return undefined;
       }
@@ -66,7 +66,6 @@ const limiter = new RateLimit({
   message: 'Too many accounts created from this IP, please try again after an 15 mins'
 })
 
-const { promisify } = require('util')
 const getAsync = promisify(redisClient.get).bind(redisClient);
 const keysAsync = promisify(redisClient.keys).bind(redisClient);
 
