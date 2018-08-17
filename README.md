@@ -11,8 +11,7 @@ Tool for benchmark parsing and execution time of JS script. Inspring by [Bundlep
 ## Support
 If you like JSspeedometer and it help you to make a good product. Just buy me a coffee
 
-
-[Buy me a coffee](https://www.buymeacoffee.com/assets/img/custom_images/white_img.png "Buy me a coffee")
+![Buy me a coffee](https://www.buymeacoffee.com/assets/img/custom_images/white_img.png "Buy me a coffee")
 ## FAQ
 
 #### How it work?
