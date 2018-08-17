@@ -44,12 +44,18 @@ const custom = new signale.Signale(options);
 
 nconf.argv().env().file('conf.json')
 
-const client = redis.createClient(
+const redisClient = redis.createClient(
   nconf.get('REDIS_PORT') || '6379',
   nconf.get('REDIS_URL') || '127.0.0.1',
   {
     'auth_pass': nconf.get('REDIS_PASSWORD') || '',
-    'return_buffers': true
+    'return_buffers': false,
+    retry_strategy: function (options) {
+      if (options.attempt > 10) {
+        // End reconnecting with built in error
+        return undefined;
+      }
+    }
   }
 ).on('error', (err) => console.error('ERR:REDIS:', err))
 
@@ -61,7 +67,8 @@ const limiter = new RateLimit({
 })
 
 const { promisify } = require('util')
-const getAsync = promisify(client.get).bind(client);
+const getAsync = promisify(redisClient.get).bind(redisClient);
+const keysAsync = promisify(redisClient.keys).bind(redisClient);
 
 (async () => {
   app.use(compression())
@@ -82,6 +89,16 @@ const getAsync = promisify(client.get).bind(client);
 
   app.get('/js/:libName/:libUrl', async function (req, res) {
     res.sendFile(path.join(__dirname + '/index.html'))
+  })
+
+  app.get('/clearCache', async function (req, res) {
+    let keys = await keysAsync('*')
+    keys.map(ele => {
+      signale.debug(`[CLEAR CACHE] ${ele}`)
+      redisClient.del(ele)
+      return true
+    })
+    res.status(200).json({ 'status': 'Clear cache complete' })
   })
 
   app.get('/build', async function (req, res) {
@@ -128,14 +145,14 @@ const getAsync = promisify(client.get).bind(client);
         performanceResult.size = size
 
         if (cacheRes) {
-          let cachePerformanceRes = JSON.parse(cacheRes.toString())
+          let cachePerformanceRes = JSON.parse(cacheRes)
           cachePerformanceRes.size = size
           cachePerformanceRes.isCache = true
           signale.success(`[TEST] Cache hit for ${req.body.fileUrl}`)
           let status = 200
           
           if (cachePerformanceRes.avgParse === 0) {
-            client.del(hex)
+            redisClient.del(hex)
           }
 
           res.status(status).json(cachePerformanceRes)
@@ -152,12 +169,15 @@ const getAsync = promisify(client.get).bind(client);
             let client = await page.target().createCDPSession()
             await client.send('Emulation.setCPUThrottlingRate', { rate: 4 })
             page.on('console', msg => {
-              custom.log(msg.text())
               let messageLogs = msg.text().split('||')
               if (messageLogs[1]) {
                 let resultLog = JSON.parse(messageLogs[1])
                 tests.push({ parse: resultLog.parse, exec: resultLog.exec })
               }
+
+              if (msg.text().indexOf('||') === -1) {
+                errorLog.push(msg.text())
+              } 
             })
 
             page.on('error', err => {
@@ -192,7 +212,7 @@ const getAsync = promisify(client.get).bind(client);
           signale.success(`Result of ${req.body.fileUrl} is ${JSON.stringify(performanceResult)}`)
 
           if (performanceResult.avgParse > 0) {
-            client.set(performanceResult.hash, JSON.stringify(performanceResult), 'EX', 3600);
+            redisClient.set(performanceResult.hash, JSON.stringify(performanceResult), 'EX', 3600);
           } 
 
           res.status(200).json(performanceResult)

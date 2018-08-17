@@ -14,7 +14,7 @@
     #footer{
         text-align: center;
         bottom: 0;
-        padding: 20px;
+        padding-top: 20px;
         font-family: 'Source Sans Pro', sans-serif;
         width: 100%;
         font-size: 13px;
@@ -247,7 +247,6 @@
         width: 100%;
         top: 0;
         left: 0;
-        padding: 5px 10px 5px 15px;
     }
     #header > h4 {
         width: 48%;

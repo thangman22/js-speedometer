@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>JS Speedometer | How long your JS boot?</title>
-    <script src="https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vuejs-auto-complete@0.7.0/dist/build.min.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
@@ -162,7 +162,7 @@
                 <p class="test-button-container">
                     <a class="test-btn" href="/"><i class="far fa-sync-alt"></i> Test Another JS</a>
                 </p>
-                <p v-if="resultData.errorLog.length > 0" class="error-link" @click="toggleError()">Show error</p>
+                <p v-if="resultData.errorLog.length > 0" class="error-link" @click="toggleError()">Show log</p>
                 <ul class="error-log" v-if="showErrorLog">
                     <li v-for="error in resultData.errorLog">
                         {{error}}
@@ -216,7 +216,7 @@
                 </p>
             </div>
         </div>
-        <div id="footer">Build with 🍊 By <a style="color:#FAFAFA;" href="https://www.thangman22.com">@Thangman22</a></div>
+        <div id="footer">Build with 🍊 By <a style="color:#FAFAFA;" title="thangman22.com" href="https://www.thangman22.com">@Thangman22</a></div>
     </div>
 </body>
 </html>
