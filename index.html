@@ -65,7 +65,7 @@
                     share () {
                           navigator.share({
                             title: 'JS Speedometer | How long your JS boot?',
-                            text: `Test result of ${mainScriptName} Pasing time ${Math.round(resultData.avgParse)}ms / Execution time ${Math.round(resultData.avgExec)}ms`,
+                            text: `Test result of ${this.mainScriptName} Pasing time ${Math.round(this.resultData.avgParse)}ms / Execution time ${Math.round(this.resultData.avgExec)}ms`,
                             url: window.location.href,
                         })
                     },
@@ -210,9 +210,9 @@
                     <a class="test-btn" style="margin-right: 10px;" href="/">
                         <i class="far fa-sync-alt"></i> Test Another JS
                     </a>
-                    <span class="share-btn" @click="share()" v-if="enableShare">
+                    <button class="share-btn" @click="share()" v-if="enableShare">
                         <i class="far fa-share-alt"></i> Share
-                    </span>
+                    </button>
                 </p>
             </div>
         </div>
