@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>JS Speedometer</title>
+    <title>JS Speedometer | How long your JS boot?</title>
     <script src="https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vuejs-auto-complete@0.7.0/dist/build.min.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
@@ -14,10 +14,13 @@
     <link href="/assets/style.css" rel="stylesheet">
     <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-TXfwrfuHVznxCssTxWoPZjhcss/hp38gEOH8UPZG/JcXonvBQ6SlsIF49wUzsGno"
         crossorigin="anonymous">
-    <meta property="og:title" content="JS Speedometer | How long your JS boot" />
+    <meta property="og:title" content="JS Speedometer | How long your JS boot?" />
     <meta property="og:description" content="Test your JS / Public library boot time with JS Speedometer?" />
     <meta property="og:image" content="https://js-speedometer.appspot.com/icon.png"
     />
+    <meta name="theme-color" content="#424242">
+    <link rel="icon" sizes="192x192" href="icon-fav.png">
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const app = new Vue({
@@ -33,7 +36,8 @@
                     testingProgress: '',
                     mainScriptName: null,
                     resultData: {},
-                    showErrorLog: false
+                    showErrorLog: false,
+                    enableShare: false
                 },
                 filters: {
                     bytesToSize(bytes) {
@@ -44,6 +48,11 @@
                     }
                 },
                 async mounted () {
+                    
+                    if (navigator.share) {
+                        this.enableShare = true;
+                    }
+
                     let pathParams = window.location.pathname.split('/')
 
                     if (pathParams[1] === 'js') {
@@ -53,6 +62,13 @@
                     }
                 },
                 methods: {
+                    share () {
+                          navigator.share({
+                            title: 'JS Speedometer | How long your JS boot?',
+                            text: `Test result of ${mainScriptName} Pasing time ${Math.round(resultData.avgParse)}ms / Execution time ${Math.round(resultData.avgExec)}ms`,
+                            url: window.location.href,
+                        })
+                    },
                     setMainScript (item) {
                         this.mainScript = item.value
                         this.mainScriptName = item.display
@@ -112,7 +128,7 @@
             <h1 v-if="!afterTest"><i class="far fa-tachometer"></i> <i class="fab fa-js-square"></i> Speedometer</h1>
             <div v-if="progress === 0">
                 <p id="bundle-container" v-if="showCustomUrl === false">
-                    <autocomplete placeholder="Search bundle from CDNJS" source="https://api.cdnjs.com/libraries?search=" results-property="results"
+                    <autocomplete placeholder="Search from CDNJS" source="https://api.cdnjs.com/libraries?search=" results-property="results"
                         results-display="name" results-value="latest" @selected="setMainScript" class="bundle-input">
                     </autocomplete>
                 </p>
@@ -194,9 +210,9 @@
                     <a class="test-btn" style="margin-right: 10px;" href="/">
                         <i class="far fa-sync-alt"></i> Test Another JS
                     </a>
-                    <!-- <a class="share-btn" href="/">
+                    <a class="share-btn" href="/" v-if="enableShare">
                         <i class="far fa-share-alt"></i> Share
-                    </a> -->
+                    </a>
                 </p>
             </div>
         </div>
