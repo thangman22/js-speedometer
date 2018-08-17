@@ -1,3 +1,6 @@
+
+![JSspeedometer](https://raw.githubusercontent.com/thangman22/js-speedometer/master/icon.png "JSspeedometer")
+
 This is a repository of [JSspeedometer](https://js-speedometer.appspot.com/)
 
 # Bundle Speedometer
