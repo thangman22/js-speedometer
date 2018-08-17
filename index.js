@@ -43,22 +43,6 @@ const options = {
 
 const custom = new signale.Signale(options);
 
-nconf.argv().env().file('conf.json')
-const redisClient = redis.createClient(
-  nconf.get('REDIS_PORT') || '6379',
-  nconf.get('REDIS_URL') || '127.0.0.1',
-  {
-    'auth_pass': nconf.get('REDIS_PASSWORD') || '',
-    'return_buffers': false,
-    retry_strategy: function (options) {
-      if (options.attempt > 100) {
-        // End reconnecting with built in error
-        return undefined;
-      }
-    }
-  }
-).on('error', (err) => console.error('ERR:REDIS:', err))
-
 const limiter = new RateLimit({
   windowMs: 15 * 60 * 1000,
   max: 400,
@@ -66,8 +50,25 @@ const limiter = new RateLimit({
   message: 'Too many accounts created from this IP, please try again after an 15 mins'
 })
 
-const getAsync = promisify(redisClient.get).bind(redisClient);
-const keysAsync = promisify(redisClient.keys).bind(redisClient);
+function redisSync(redisClient) {
+  return {
+    getAsync: promisify(redisClient.get).bind(redisClient),
+    keysAsync: promisify(redisClient.keys).bind(redisClient)
+  }
+}
+
+function connectRedis () {
+  nconf.argv().env().file('conf.json')
+
+  return redis.createClient(
+    nconf.get('REDIS_PORT') || '6379',
+    nconf.get('REDIS_URL') || '127.0.0.1',
+    {
+      'auth_pass': nconf.get('REDIS_PASSWORD') || '',
+      'return_buffers': false
+    }
+  ).on('error', (err) => console.error('ERR:REDIS:', err))
+}
 
 (async () => {
   app.use(compression())
@@ -91,10 +92,10 @@ const keysAsync = promisify(redisClient.keys).bind(redisClient);
   })
 
   app.get('/clearCache', async function (req, res) {
-    let keys = await keysAsync('*')
+    let keys = await redisSync(connectRedis()).keysAsync('*')
     keys.map(ele => {
       signale.debug(`[CLEAR CACHE] ${ele}`)
-      redisClient.del(ele)
+      connectRedis().del(ele)
       return true
     })
     res.status(200).json({ 'status': 'Clear cache complete' })
@@ -139,7 +140,7 @@ const keysAsync = promisify(redisClient.keys).bind(redisClient);
         let mainScript = await rp(req.body.fileUrl)
         let size = Buffer.byteLength(mainScript, 'utf16')
         let hex = crypto.createHash('md5').update(mainScript).digest('hex')
-        let cacheRes = await getAsync(hex)
+        let cacheRes = await redisSync(connectRedis()).getAsync(hex)
 
         performanceResult.size = size
 
@@ -151,7 +152,7 @@ const keysAsync = promisify(redisClient.keys).bind(redisClient);
           let status = 200
           
           if (cachePerformanceRes.avgParse === 0) {
-            redisClient.del(hex)
+            connectRedis().del(hex)
           }
 
           res.status(status).json(cachePerformanceRes)
@@ -211,7 +212,7 @@ const keysAsync = promisify(redisClient.keys).bind(redisClient);
           signale.success(`Result of ${req.body.fileUrl} is ${JSON.stringify(performanceResult)}`)
 
           if (performanceResult.avgParse > 0) {
-            redisClient.set(performanceResult.hash, JSON.stringify(performanceResult), 'EX', 3600);
+            connectRedis().set(performanceResult.hash, JSON.stringify(performanceResult), 'EX', 3600);
           } 
 
           res.status(200).json(performanceResult)
