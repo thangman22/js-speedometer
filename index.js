@@ -100,6 +100,16 @@ function connectRedis () {
     res.status(200).json({ 'status': 'Clear cache complete' })
   })
 
+  app.get('/listCurrentCache', async function (req, res) {
+    let apiRes = []
+    let keys = await redisSync(connectRedis()).keysAsync('*')
+    for(let key of keys ) {
+      let redisCache = await redisSync(connectRedis()).getAsync(key)
+      apiRes.push(JSON.parse(redisCache))
+    }
+    res.status(200).json({ 'data': apiRes })
+  })
+
   app.get('/build', async function (req, res) {
     try {
       signale.debug(`[BUILD] Retriving file from ${req.query.fileUrl}`)

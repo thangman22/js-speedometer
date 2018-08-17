@@ -135,7 +135,9 @@
                 <p class="or" v-if="showCustomUrl === false"><span class="link" @click="toggleCustom()">Or define your own URL</span>
                     then <span class="link2" @click="toggleDependencies()">Add dependencies (Optional)</span></p>
                 <p id="bundle-url-container" v-if="showCustomUrl"><input id="bundle-url" placeholder="Define bundle URL" v-model="mainScript"
-                    /></p>
+                    />
+                </p>
+                
                 <p class="or" v-if="showCustomUrl"><span class="link" @click="toggleCustom()">Or Search from CDNJS</span> then <span
                         class="link2" @click="toggleDependencies()">Add dependencies (Optional)</span></p>
                 <p id="dependency-container" v-if="showDependencies">
@@ -216,7 +218,10 @@
                 </p>
             </div>
         </div>
-        <div id="footer">Build with 🍊 By <a style="color:#FAFAFA;" title="thangman22.com" href="https://www.thangman22.com">@Thangman22</a></div>
+        <div id="footer">
+            Build with 🍊 By <a style="color:#FAFAFA;" title="thangman22.com" href="https://www.thangman22.com">@Thangman22</a><br><br>
+            <strong>For security and licensing issue</strong> all of tested source code will not store for further process or any reason and will not transfer to any third party.
+        </div>
     </div>
 </body>
 </html>

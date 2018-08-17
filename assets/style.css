@@ -1,3 +1,6 @@
+    body {
+        margin: 0;
+    }
     .error-log > li {
         padding: 5px;
         font-size: 10px;
@@ -12,9 +15,11 @@
         margin-top: 0px;
     }
     #footer{
+        position: absolute;
+        bottom: 0;
         text-align: center;
         bottom: 0;
-        padding-top: 20px;
+        padding-bottom: 30px;
         font-family: 'Source Sans Pro', sans-serif;
         width: 100%;
         font-size: 13px;
