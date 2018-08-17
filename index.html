@@ -19,7 +19,7 @@
     <meta property="og:image" content="https://js-speedometer.appspot.com/icon.png"
     />
     <meta name="theme-color" content="#424242">
-    <link rel="icon" sizes="192x192" href="icon-fav.png">
+    <link rel="icon" sizes="192x192" href="/icon-fav.png">
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -210,9 +210,9 @@
                     <a class="test-btn" style="margin-right: 10px;" href="/">
                         <i class="far fa-sync-alt"></i> Test Another JS
                     </a>
-                    <a class="share-btn" href="/" v-if="enableShare">
+                    <span class="share-btn" @click="share()" v-if="enableShare">
                         <i class="far fa-share-alt"></i> Share
-                    </a>
+                    </span>
                 </p>
             </div>
         </div>
